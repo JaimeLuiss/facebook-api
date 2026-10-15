@@ -20,16 +20,17 @@ class CommentController extends Controller
 
     public function store(Request $request, $postId)
     {
-        $request->validate([
-            'author' => 'required|string|max:255',
+        $validated = $request->validate([
             'content' => 'required|string',
         ]);
 
         $post = Post::findOrFail($postId);
+        $user = $request->user();
 
         $comment = $post->comments()->create([
-            'author' => $request->author,
-            'content' => $request->content,
+            'user_id' => $user->id,
+            'author' => $user->name,
+            'content' => $validated['content'],
         ]);
 
         return response()->json($comment, 201);

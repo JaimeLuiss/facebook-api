@@ -1,59 +1,186 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Facebook API - Taller Backend
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+API REST desarrollada con Laravel para gestionar publicaciones, imágenes, comentarios y reacciones de «Me gusta».
 
-## About Laravel
+## Funcionalidades
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- Crear publicaciones con una o varias imágenes.
+- Listar publicaciones con sus imágenes y comentarios.
+- Consultar una publicación individual.
+- Agregar comentarios a una publicación.
+- Incrementar el contador de «Me gusta».
+- Eliminar publicaciones y sus imágenes físicas.
+- Ejecutar pruebas automatizadas con PHPUnit.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Tecnologías
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- PHP y Laravel
+- SQLite
+- Eloquent ORM
+- Postman
+- PHPUnit
+- Git y GitHub
 
-## Learning Laravel
+## Requisitos previos
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+- PHP compatible con la versión de Laravel utilizada.
+- Composer.
+- Git.
+- Postman para probar los endpoints.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Instalación
 
-## Laravel Sponsors
+Clona el repositorio y entra en la carpeta del proyecto:
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```bash
+git clone https://github.com/JaimeLuiss/facebook-api.git
+cd facebook-api
+```
 
-### Premium Partners
+Instala las dependencias:
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+```bash
+composer install
+```
 
-## Contributing
+Crea el archivo de configuración local en Windows PowerShell:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```powershell
+Copy-Item .env.example .env
+```
 
-## Code of Conduct
+Genera la clave de la aplicación:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+php artisan key:generate
+```
 
-## Security Vulnerabilities
+En el archivo `.env`, configura la conexión a SQLite:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```env
+DB_CONNECTION=sqlite
+```
 
-## License
+Crea el archivo de la base de datos si todavía no existe:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```powershell
+if (!(Test-Path database\database.sqlite)) {
+    New-Item database\database.sqlite -ItemType File
+}
+```
+
+Ejecuta las migraciones:
+
+```bash
+php artisan migrate
+```
+
+Crea el enlace simbólico para acceder a las imágenes:
+
+```bash
+php artisan storage:link
+```
+
+Inicia el servidor:
+
+```bash
+php artisan serve
+```
+
+La API estará disponible normalmente en `http://127.0.0.1:8000`.
+
+## Endpoints
+
+La API utiliza las siguientes rutas:
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/api/posts` | Lista las publicaciones, imágenes y comentarios. |
+| POST | `/api/posts` | Crea una publicación y guarda sus imágenes. |
+| GET | `/api/posts/{id}` | Consulta una publicación específica. |
+| POST | `/api/posts/{id}/comments` | Agrega un comentario. |
+| POST | `/api/posts/{id}/like` | Incrementa el contador de «Me gusta». |
+| DELETE | `/api/posts/{id}` | Elimina una publicación y sus imágenes físicas. |
+
+### Crear una publicación
+
+Envía `POST /api/posts` mediante `multipart/form-data` con estos campos:
+
+| Campo | Tipo | Obligatorio |
+|---|---|---|
+| `title` | Texto | Sí |
+| `content` | Texto | Sí |
+| `images[]` | Archivo de imagen | No |
+
+Las imágenes admitidas por el controlador son JPEG, PNG, JPG, GIF y WEBP, con un tamaño máximo de 2 MB por archivo.
+
+### Listar publicaciones
+
+Envía `GET /api/posts`. La respuesta incluye los datos de cada publicación, sus imágenes, la URL completa `image_url` y los comentarios asociados.
+
+### Agregar un comentario
+
+Envía `POST /api/posts/{id}/comments` con un cuerpo JSON:
+
+```json
+{
+  "author": "Carlos Gomez",
+  "content": "¡Qué buena foto!"
+}
+```
+
+### Dar «Me gusta»
+
+Envía `POST /api/posts/{id}/like`. No requiere cuerpo. La operación incrementa `likes_count`.
+
+### Eliminar una publicación
+
+Envía `DELETE /api/posts/{id}`. La respuesta esperada es `204 No Content`. También se eliminan los archivos de imagen asociados almacenados en el disco público.
+
+## Pruebas automatizadas
+
+Ejecuta:
+
+```bash
+php artisan test
+```
+
+Las pruebas automatizadas verifican los casos incluidos en el directorio `tests`.
+
+## Colección de Postman
+
+En la raíz del proyecto se encuentra:
+
+`Facebook_API_Taller_Backend.postman_collection.json`
+
+Para utilizarla:
+
+1. Abre Postman.
+2. Selecciona **Import**.
+3. Selecciona el archivo JSON de la colección.
+4. Comprueba que Laravel esté ejecutándose en el puerto configurado.
+5. Envía las solicitudes de la colección.
+
+Las solicitudes utilizan la URL base `http://127.0.0.1:8000`. Si el servidor utiliza otro puerto, actualiza las URLs en Postman.
+
+## Estructura principal
+
+```text
+facebook-api/
+├── app/
+│   ├── Http/Controllers/
+│   │   ├── PostController.php
+│   │   └── CommentController.php
+│   └── Models/
+├── database/
+│   └── migrations/
+├── routes/
+│   └── api.php
+├── tests/
+├── Facebook_API_Taller_Backend.postman_collection.json
+└── README.md
+```
+
+## Repositorio
+
+https://github.com/JaimeLuiss/facebook-api

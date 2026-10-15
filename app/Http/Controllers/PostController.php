@@ -3,29 +3,49 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
-use App\Models\PostImage;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
 {
     /**
      * Listar publicaciones con usuarios, imágenes y comentarios.
+     *
+     * @group Publicaciones
+     *
+     * @queryParam page integer Número de página. Example: 2
+     * @queryParam search string Busca coincidencias parciales en título o contenido. Example: viaje
+     *
+     * @response 200 {"current_page":1,"data":[{"id":1,"title":"Viaje a Cali","content":"Un día soleado","likes_count":2,"images":[],"comments":[]}],"last_page":1,"per_page":10,"total":1}
      */
-    public function index()
+    public function index(Request $request)
     {
-        $posts = Post::with([
-            'user',
-            'images',
-            'comments.user',
-        ])
-            ->latest()
-            ->get();
+        $validated = $request->validate([
+            'search' => 'sometimes|string|max:255',
+        ]);
 
-        $posts->each(function ($post) {
+        $search = trim($validated['search'] ?? '');
+
+        $posts = Post::with(['user', 'images', 'comments.user'])
+            ->withCount(['likes as actual_likes_count'])
+            ->when($search !== '', function ($query) use ($search): void {
+                $query->where(function ($query) use ($search): void {
+                    $query->where('title', 'like', "%{$search}%")
+                        ->orWhere('content', 'like', "%{$search}%");
+                });
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
+        $posts->getCollection()->each(function ($post): void {
+            $post->setAttribute('likes_count', $post->actual_likes_count);
+            $post->makeHidden('actual_likes_count');
+
             $post->images->transform(function ($image) {
                 $image->image_url = $image->image_path
-                    ? asset('storage/' . $image->image_path)
+                    ? asset('storage/'.$image->image_path)
                     : null;
 
                 return $image;
@@ -37,6 +57,12 @@ class PostController extends Controller
 
     /**
      * Consultar una publicación específica.
+     *
+     * @group Publicaciones
+     *
+     * @urlParam id integer required ID de la publicación. Example: 1
+     *
+     * @response 200 {"id":1,"title":"Viaje a Cali","content":"Un día soleado","likes_count":2,"images":[],"comments":[]}
      */
     public function show($id)
     {
@@ -44,11 +70,14 @@ class PostController extends Controller
             'user',
             'images',
             'comments.user',
-        ])->findOrFail($id);
+        ])->withCount(['likes as actual_likes_count'])->findOrFail($id);
+
+        $post->setAttribute('likes_count', $post->actual_likes_count);
+        $post->makeHidden('actual_likes_count');
 
         $post->images->transform(function ($image) {
             $image->image_url = $image->image_path
-                ? asset('storage/' . $image->image_path)
+                ? asset('storage/'.$image->image_path)
                 : null;
 
             return $image;
@@ -59,6 +88,16 @@ class PostController extends Controller
 
     /**
      * Crear una publicación asociada al usuario autenticado.
+     *
+     * @group Publicaciones
+     *
+     * @authenticated
+     *
+     * @bodyParam title string required Título de la publicación. Example: Mi viaje
+     * @bodyParam content string required Contenido de la publicación. Example: Un día excelente
+     * @bodyParam images[] file Imágenes opcionales en formato JPEG, PNG, GIF o WEBP (máximo 2 MB cada una).
+     *
+     * @response 201 {"id":1,"title":"Mi viaje","content":"Un día excelente","likes_count":0,"user_id":1,"images":[]}
      */
     public function store(Request $request)
     {
@@ -98,7 +137,7 @@ class PostController extends Controller
 
         $post->images->transform(function ($image) {
             $image->image_url = $image->image_path
-                ? asset('storage/' . $image->image_path)
+                ? asset('storage/'.$image->image_path)
                 : null;
 
             return $image;
@@ -109,21 +148,48 @@ class PostController extends Controller
 
     /**
      * Incrementar el contador de Me gusta.
+     *
+     * @group Publicaciones
+     *
+     * @authenticated
+     *
+     * @urlParam id integer required ID de la publicación. Example: 1
+     *
+     * @response 200 {"message":"Me gusta añadido correctamente.","likes_count":1}
      */
-    public function like($id)
+    public function like(Request $request, $id)
     {
         $post = Post::findOrFail($id);
+        $now = now();
+        $inserted = DB::table('post_user')->insertOrIgnore([
+            'post_id' => $post->id,
+            'user_id' => $request->user()->id,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
 
-        $post->increment('likes_count');
+        if ($inserted > 0) {
+            $post->increment('likes_count');
+        }
 
         return response()->json([
-            'message' => 'Me gusta añadido correctamente.',
-            'likes_count' => $post->likes_count,
+            'message' => $inserted > 0
+                ? 'Me gusta añadido correctamente.'
+                : 'Ya habías indicado que te gusta esta publicación.',
+            'likes_count' => $post->likes()->count(),
         ], 200);
     }
 
     /**
      * Eliminar una publicación y sus imágenes físicas.
+     *
+     * @group Publicaciones
+     *
+     * @authenticated
+     *
+     * @urlParam id integer required ID de la publicación. Example: 1
+     *
+     * @response 204
      */
     public function destroy($id)
     {

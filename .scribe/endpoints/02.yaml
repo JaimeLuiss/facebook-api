@@ -1,0 +1,80 @@
+name: Comentarios
+description: ''
+endpoints:
+  -
+    custom: []
+    httpMethods:
+      - POST
+    uri: 'api/v1/posts/{id}/comments'
+    metadata:
+      custom: []
+      groupName: Comentarios
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: 'Agregar un comentario y notificar al propietario de la publicación.'
+      description: ''
+      authenticated: true
+      deprecated: false
+    headers:
+      Authorization: 'Bearer Bearer {TOKEN}'
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      id:
+        custom: []
+        name: id
+        description: 'The ID of the post.'
+        required: true
+        example: architecto
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      postId:
+        custom: []
+        name: postId
+        description: 'ID de la publicación.'
+        required: true
+        example: 1
+        type: integer
+        enumValues: []
+        exampleWasSpecified: true
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      id: architecto
+      postId: 1
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      content:
+        custom: []
+        name: content
+        description: 'Texto del comentario.'
+        required: true
+        example: 'Buen post'
+        type: string
+        enumValues: []
+        exampleWasSpecified: true
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      content: 'Buen post'
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 201
+        content: '{"id":1,"post_id":1,"user_id":2,"author":"Carlos Gomez","content":"Buen post"}'
+        headers: []
+        description: ''
+    responseFields: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
+    controller: null
+    method: null
+    route: null

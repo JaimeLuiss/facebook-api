@@ -1,271 +1,731 @@
 {
   "info": {
     "_postman_id": "7bcfb9b3-c697-4fa6-85b0-a1737178bc55",
-    "name": "REST API basics: CRUD, test & variable",
-    "description": "# 🚀 Get started here\n\nThis template guides you through CRUD operations (GET, POST, PUT, DELETE), variables, and tests.\n\n## 🔖 **How to use this template**\n\n#### **Step 1: Send requests**\n\nRESTful APIs allow you to perform CRUD operations using the POST, GET, PUT, and DELETE HTTP methods.\n\nThis collection contains each of these [request](https://learning.postman.com/docs/sending-requests/requests/) types. Open each request and click \"Send\" to see what happens.\n\n#### **Step 2: View responses**\n\nObserve the response tab for status code (200 OK), response time, and size.\n\n#### **Step 3: Send new Body data**\n\nUpdate or add new data in \"Body\" in the POST request. Typically, Body data is also used in PUT request.\n\n```\n{\n    \"name\": \"Add your name in the body\"\n}\n\n ```\n\n#### **Step 4: Update the variable**\n\nVariables enable you to store and reuse values in Postman. We have created a [variable](https://learning.postman.com/docs/sending-requests/variables/) called `base_url` with the sample request [https://postman-api-learner.glitch.me](https://postman-api-learner.glitch.me). Replace it with your API endpoint to customize this collection.\n\n#### **Step 5: Add tests in the \"Scripts\" tab**\n\nAdding tests to your requests can help you confirm that your API is working as expected. You can write test scripts in JavaScript and view the output in the \"Test Results\" tab.\n\n<img src=\"https://content.pstmn.io/fa30ea0a-373d-4545-a668-e7b283cca343/aW1hZ2UucG5n\" alt=\"\" height=\"1530\" width=\"2162\">\n\n## 💪 Pro tips\n\n- Use folders to group related requests and organize the collection.\n    \n- Add more [scripts](https://learning.postman.com/docs/writing-scripts/intro-to-scripts/) to verify if the API works as expected and execute workflows.\n    \n\n## 💡Related templates\n\n[API testing basics](https://go.postman.co/redirect/workspace?type=personal&collectionTemplateId=e9a37a28-055b-49cd-8c7e-97494a21eb54&sourceTemplateId=ddb19591-3097-41cf-82af-c84273e56719)  \n[API documentation](https://go.postman.co/redirect/workspace?type=personal&collectionTemplateId=e9c28f47-1253-44af-a2f3-20dce4da1f18&sourceTemplateId=ddb19591-3097-41cf-82af-c84273e56719)  \n[Authorization methods](https://go.postman.co/redirect/workspace?type=personal&collectionTemplateId=31a9a6ed-4cdf-4ced-984c-d12c9aec1c27&sourceTemplateId=ddb19591-3097-41cf-82af-c84273e56719)",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "39271101"
+    "name": "Facebook API - Taller Backend",
+    "description": "Colección para probar autenticación Sanctum, paginación, likes por usuario, búsqueda, comentarios con notificación por correo y versionado. Orden recomendado: registrar o iniciar sesión, crear una publicación y luego ejecutar las pruebas.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
   },
   "item": [
     {
-      "name": "Listar publicaciones",
-      "event": [
+      "name": "1. Autenticación",
+      "item": [
         {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test(\"Status code is 200\", function () {",
-              "    pm.response.to.have.status(200);",
-              "});"
-            ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
-          }
-        },
-        {
-          "listen": "prerequest",
-          "script": {
-            "exec": [
-              ""
-            ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
-          }
-        }
-      ],
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "http://127.0.0.1:8000/api/posts",
-          "protocol": "http",
-          "host": [
-            "127",
-            "0",
-            "0",
-            "1"
-          ],
-          "port": "8000",
-          "path": [
-            "api",
-            "posts"
-          ]
-        },
-        "description": "This is a GET request and it is used to \"get\" data from an endpoint. There is no request body for a GET request, but you can use query parameters to help specify the resource you want data on (e.g., in this request, we have `id=1`).\n\nA successful GET response will have a `200 OK` status, and should include some kind of response body - for example, HTML web content or JSON data."
-      },
-      "response": []
-    },
-    {
-      "name": "Crear publicación con imágenes",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test(\"Successful POST request\", function () {",
-              "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
-              "});",
-              ""
-            ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
-          }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [],
-        "body": {
-          "mode": "formdata",
-          "formdata": [
+          "name": "Registrar usuario principal",
+          "event": [
             {
-              "key": "title",
-              "value": "Mi primera publicacion",
-              "type": "text",
-              "uuid": "e09da0aa-afec-4de1-b3f3-e01be0f98fa9"
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"user_email\", \"carlos+\" + pm.variables.replaceIn(\"{{$guid}}\") + \"@example.com\");",
+                  "pm.collectionVariables.set(\"user_password\", \"password123\");"
+                ]
+              }
             },
             {
-              "key": "content",
-              "value": "HOLA A TODOS, ESTA ES MI PRIMERA PUBLICACION",
-              "type": "text",
-              "uuid": "284543be-480e-4305-bdb9-afee6f6d9ff6"
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Registro responde 201\", function () { pm.response.to.have.status(201); });",
+                  "pm.test(\"La respuesta incluye un token\", function () { pm.expect(pm.response.json().token).to.be.a(\"string\"); });",
+                  "pm.collectionVariables.set(\"token\", pm.response.json().token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Carlos Gomez\",\n  \"email\": \"{{user_email}}\",\n  \"password\": \"{{user_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
+            "url": "{{base_url}}/register",
+            "description": "Registra una cuenta de prueba. El token de la respuesta se guarda automáticamente en la variable de colección token."
+          },
+          "response": []
+        },
+        {
+          "name": "Iniciar sesión",
+          "event": [
             {
-              "key": "images[]",
-              "type": "file",
-              "uuid": "f838e60f-d5cf-4093-b983-0438ec3365e5",
-              "src": "postman-cloud:///1f1c85e8-7473-4d70-9dcb-d2d29e374cd8"
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Login responde 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"La respuesta incluye un token\", function () { pm.expect(pm.response.json().token).to.be.a(\"string\"); });",
+                  "pm.collectionVariables.set(\"token\", pm.response.json().token);"
+                ]
+              }
             }
-          ]
-        },
-        "url": {
-          "raw": "http://127.0.0.1:8000/api/posts",
-          "protocol": "http",
-          "host": [
-            "127",
-            "0",
-            "0",
-            "1"
           ],
-          "port": "8000",
-          "path": [
-            "api",
-            "posts"
-          ]
-        },
-        "description": "This is a POST request, submitting data to an API via the request body. This request submits JSON data, and the data is reflected in the response.\n\nA successful POST request typically returns a `200 OK` or `201 Created` response code."
-      },
-      "response": []
-    },
-    {
-      "name": "Dar Me gusta",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test(\"Successful PUT request\", function () {",
-              "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204]);",
-              "});",
-              ""
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
-          }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [],
-        "url": {
-          "raw": "http://127.0.0.1:8000/api/posts/5/like",
-          "protocol": "http",
-          "host": [
-            "127",
-            "0",
-            "0",
-            "1"
-          ],
-          "port": "8000",
-          "path": [
-            "api",
-            "posts",
-            "5",
-            "like"
-          ]
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{user_email}}\",\n  \"password\": \"{{user_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/login",
+            "description": "Usa una cuenta que ya exista. El token se guarda automáticamente en token."
+          },
+          "response": []
         },
-        "description": "This is a PUT request and it is used to overwrite an existing piece of data. For instance, after you create an entity with a POST request, you may want to modify that later. You can do that using a PUT request. You typically identify the entity being updated by including an identifier in the URL (eg. `id=1`).\n\nA successful PUT request typically returns a `200 OK`, `201 Created`, or `204 No Content` response code."
-      },
-      "response": []
-    },
-    {
-      "name": "Eliminar publicación",
-      "event": [
         {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test(\"Successful DELETE request\", function () {",
-              "    pm.expect(pm.response.code).to.be.oneOf([200, 202, 204]);",
-              "});",
-              ""
-            ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
-          }
-        }
-      ],
-      "request": {
-        "method": "DELETE",
-        "header": [],
-        "url": {
-          "raw": "http://127.0.0.1:8000/api/posts/5",
-          "protocol": "http",
-          "host": [
-            "127",
-            "0",
-            "0",
-            "1"
-          ],
-          "port": "8000",
-          "path": [
-            "api",
-            "posts",
-            "5"
-          ]
-        },
-        "description": "This is a DELETE request, and it is used to delete data that was previously created via a POST request. You typically identify the entity being updated by including an identifier in the URL (eg. `id=1`).\n\nA successful DELETE request typically returns a `200 OK`, `202 Accepted`, or `204 No Content` response code."
-      },
-      "response": []
-    },
-    {
-      "name": "Agregar comentario",
-      "request": {
-        "method": "POST",
-        "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "{\r\n  \"author\": \"Carlos Gomez\",\r\n  \"content\": \"¡Qué buena foto!\"\r\n}",
-          "options": {
-            "raw": {
-              "language": "json"
+          "name": "Registrar segundo usuario (para probar likes)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Segundo registro responde 201\", function () { pm.response.to.have.status(201); });",
+                  "pm.test(\"La respuesta incluye un token\", function () { pm.expect(pm.response.json().token).to.be.a(\"string\"); });",
+                  "pm.collectionVariables.set(\"token2\", pm.response.json().token);"
+                ]
+              }
             }
-          }
-        },
-        "url": {
-          "raw": "http://127.0.0.1:8000/api/posts/5/comments",
-          "protocol": "http",
-          "host": [
-            "127",
-            "0",
-            "0",
-            "1"
           ],
-          "port": "8000",
-          "path": [
-            "api",
-            "posts",
-            "5",
-            "comments"
-          ]
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ana Gomez\",\n  \"email\": \"ana{{$guid}}@example.com\",\n  \"password\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/register",
+            "description": "Crea una segunda identidad de prueba y guarda su token en token2 sin reemplazar token."
+          },
+          "response": []
         }
-      },
-      "response": []
-    }
-  ],
-  "event": [
-    {
-      "listen": "prerequest",
-      "script": {
-        "type": "text/javascript",
-        "exec": [
-          ""
-        ]
-      }
+      ]
     },
     {
-      "listen": "test",
-      "script": {
-        "type": "text/javascript",
-        "exec": [
-          ""
-        ]
-      }
+      "name": "2. Publicaciones, paginación y búsqueda",
+      "item": [
+        {
+          "name": "Crear publicación (y guardar ID)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"La publicación se crea\", function () { pm.response.to.have.status(201); });",
+                  "pm.test(\"La respuesta incluye el ID\", function () { pm.expect(pm.response.json().id).to.exist; });",
+                  "pm.collectionVariables.set(\"postId\", String(pm.response.json().id));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "Viaje de prueba {{$timestamp}}",
+                  "type": "text"
+                },
+                {
+                  "key": "content",
+                  "value": "Publicación para comprobar la API desde Postman",
+                  "type": "text"
+                },
+                {
+                  "key": "images[]",
+                  "type": "file",
+                  "disabled": true,
+                  "description": "Opcional: habilita este campo y selecciona un archivo de imagen local."
+                }
+              ]
+            },
+            "url": "{{base_url}}/posts",
+            "description": "Requiere token. Envía title y content como form-data. Para probar imágenes, habilita images[] y escoge un archivo desde tu equipo. Postman guarda el ID devuelto en postId."
+          },
+          "response": []
+        },
+        {
+          "name": "Listar publicaciones (página 1)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Lista responde 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"La respuesta está paginada\", function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.data).to.be.an(\"array\");",
+                  "    pm.expect(body).to.have.property(\"current_page\");",
+                  "    pm.expect(body).to.have.property(\"last_page\");",
+                  "    pm.expect(body).to.have.property(\"per_page\", 10);",
+                  "    pm.expect(body).to.have.property(\"total\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/posts?page=1",
+            "description": "Prueba la respuesta paginada; repite cambiando page=1 por page=2."
+          },
+          "response": []
+        },
+        {
+          "name": "Listar publicaciones (página 2)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Página 2 responde 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"La respuesta indica la página solicitada\", function () { pm.expect(pm.response.json().current_page).to.eql(2); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/posts?page=2",
+            "description": "Si no hay suficientes publicaciones, la página 2 puede tener data vacía; crea más de diez publicaciones para comprobarla."
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar publicaciones por palabra",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Búsqueda responde 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"La respuesta conserva metadatos de paginación\", function () { pm.expect(pm.response.json()).to.have.property(\"total\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/posts?search=viaje",
+            "description": "Cambia viaje por una palabra que aparezca en title o content de tus publicaciones."
+          },
+          "response": []
+        },
+        {
+          "name": "Consultar publicación por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Detalle responde 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"El ID coincide con postId\", function () { pm.expect(String(pm.response.json().id)).to.eql(pm.collectionVariables.get(\"postId\")); });",
+                  "pm.test(\"La respuesta incluye likes_count\", function () { pm.expect(pm.response.json()).to.have.property(\"likes_count\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/posts/{{postId}}",
+            "description": "Consulta la publicación creada y guardada automáticamente en postId."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Likes por usuario",
+      "item": [
+        {
+          "name": "Dar like con usuario principal",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Like responde 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"El conteo de likes es numérico\", function () { pm.expect(pm.response.json().likes_count).to.be.a(\"number\"); });",
+                  "pm.collectionVariables.set(\"primaryLikesCount\", String(pm.response.json().likes_count));",
+                  "pm.collectionVariables.set(\"primaryLikedPostId\", pm.collectionVariables.get(\"postId\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/posts/{{postId}}/like",
+            "description": "Requiere token principal. Envía la solicitud dos veces y confirma que likes_count no suba en el segundo envío."
+          },
+          "response": []
+        },
+        {
+          "name": "Dar like con el mismo usuario otra vez (no debe duplicar)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Like repetido responde 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"El like repetido no aumenta el conteo\", function () {",
+                  "    pm.expect(pm.collectionVariables.get(\"primaryLikedPostId\")).to.eql(pm.collectionVariables.get(\"postId\"));",
+                  "    pm.expect(String(pm.response.json().likes_count)).to.eql(pm.collectionVariables.get(\"primaryLikesCount\"));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/posts/{{postId}}/like",
+            "description": "Envía esta solicitud después de Dar like con usuario principal; verifica que el mismo usuario no cuente dos veces."
+          },
+          "response": []
+        },
+        {
+          "name": "Dar like con segundo usuario (debe aumentar en uno)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Like del segundo usuario responde 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"El like de otro usuario incrementa el conteo en uno\", function () {",
+                  "    const previous = Number(pm.collectionVariables.get(\"primaryLikesCount\"));",
+                  "    pm.expect(pm.collectionVariables.get(\"primaryLikedPostId\")).to.eql(pm.collectionVariables.get(\"postId\"));",
+                  "    pm.expect(pm.response.json().likes_count).to.eql(previous + 1);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token2}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/posts/{{postId}}/like",
+            "description": "Primero ejecuta Registrar segundo usuario. Esta solicitud usa token2 y comprueba que otro usuario sí aumenta el conteo en uno."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Comentarios y correo",
+      "item": [
+        {
+          "name": "Agregar comentario (notifica al dueño)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Comentario creado\", function () { pm.response.to.have.status(201); });",
+                  "pm.test(\"El autor se toma del usuario autenticado\", function () { pm.expect(pm.response.json().author).to.be.a(\"string\"); });",
+                  "pm.test(\"El contenido coincide\", function () { pm.expect(pm.response.json().content).to.eql(\"Buen post desde Postman\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Buen post desde Postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/posts/{{postId}}/comments",
+            "description": "Requiere token. El nombre del autor se toma de la cuenta autenticada, no envíes author. Con MAIL_MAILER=log, revisa storage/logs/laravel.log para comprobar el correo al dueño."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Autorización y versionado",
+      "item": [
+        {
+          "name": "Crear publicación sin token (debe responder 401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"La API rechaza la solicitud anónima\", function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Prueba anónima\",\n  \"content\": \"No debe crearse\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/posts",
+            "description": "Esta solicitud desactiva explícitamente la autorización heredada para demostrar que POST /posts está protegido."
+          },
+          "response": []
+        },
+        {
+          "name": "Agregar comentario sin token (debe responder 401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"La API rechaza el comentario anónimo\", function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"No debe guardarse\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/posts/{{postId}}/comments",
+            "description": "Comprueba que comentar requiere autenticación."
+          },
+          "response": []
+        },
+        {
+          "name": "Listar usando ruta antigua (compatibilidad)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"La ruta antigua sigue respondiendo 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"La respuesta antigua también está paginada\", function () { pm.expect(pm.response.json()).to.have.property(\"data\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{app_url}}/api/posts",
+            "description": "Comprueba que las rutas anteriores a /api/v1 siguen funcionando."
+          },
+          "response": []
+        },
+        {
+          "name": "Consultar documentación Scribe",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"La documentación está disponible\", function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{app_url}}/docs",
+            "description": "Abre la documentación de endpoints de la API."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Limpieza (opcional)",
+      "item": [
+        {
+          "name": "Eliminar publicación de prueba",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"La publicación se eliminó (204)\", function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/posts/{{postId}}",
+            "description": "Requiere token y elimina la publicación creada para la prueba."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "7. Cerrar sesión (al final)",
+      "item": [
+        {
+          "name": "Cerrar sesión y revocar token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Logout responde 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.collectionVariables.unset(\"token\");"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/logout",
+            "description": "Ejecuta al final, después de todas las demás pruebas: revoca el token principal y lo elimina de las variables de colección."
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "variable": [
     {
-      "key": "id",
-      "value": "1"
+      "key": "app_url",
+      "value": "http://127.0.0.1:8000",
+      "type": "string"
     },
     {
       "key": "base_url",
-      "value": "https://postman-rest-api-learner.glitch.me/"
+      "value": "http://127.0.0.1:8000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "token2",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_email",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_password",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "postId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "primaryLikesCount",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "primaryLikedPostId",
+      "value": "",
+      "type": "string"
     }
   ]
 }

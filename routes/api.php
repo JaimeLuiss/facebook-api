@@ -1,31 +1,27 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\PostController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\PostController;
+use Illuminate\Support\Facades\Route;
 
-// Rutas públicas de autenticación
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+$registerApiRoutes = static function (): void {
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login']);
 
-// Consultar publicaciones
-Route::get('/posts', [PostController::class, 'index']);
-Route::get('/posts/{id}', [PostController::class, 'show']);
+    Route::get('/posts', [PostController::class, 'index']);
+    Route::get('/posts/{id}', [PostController::class, 'show']);
 
-// Dar Me gusta
-Route::post('/posts/{id}/like', [PostController::class, 'like']);
+    Route::middleware('auth:sanctum')->group(function (): void {
+        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::post('/posts', [PostController::class, 'store']);
+        Route::post('/posts/{id}/comments', [CommentController::class, 'store']);
+        Route::post('/posts/{id}/like', [PostController::class, 'like']);
+        Route::delete('/posts/{id}', [PostController::class, 'destroy']);
+    });
+};
 
-// Rutas protegidas: requieren un token válido de Sanctum
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout']);
+Route::prefix('v1')->group($registerApiRoutes);
 
-    Route::post('/posts', [PostController::class, 'store']);
-
-    Route::post(
-        '/posts/{id}/comments',
-        [CommentController::class, 'store']
-    );
-
-    Route::delete('/posts/{id}', [PostController::class, 'destroy']);
-});
+// Keep the original endpoints available while clients migrate to /v1.
+$registerApiRoutes();

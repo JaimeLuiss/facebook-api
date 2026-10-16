@@ -31,8 +31,8 @@ class PostController extends Controller
             ->withCount(['likes as actual_likes_count'])
             ->when($search !== '', function ($query) use ($search): void {
                 $query->where(function ($query) use ($search): void {
-                    $query->where('title', 'like', "%{$search}%")
-                        ->orWhere('content', 'like', "%{$search}%");
+                    $query->where('title', 'ilike', "%{$search}%")
+                        ->orWhere('content', 'ilike', "%{$search}%");
                 });
             })
             ->latest()

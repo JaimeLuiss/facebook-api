@@ -20,7 +20,7 @@ API REST desarrollada con Laravel para gestionar publicaciones, imágenes, comen
 ## Tecnologías
 
 - PHP y Laravel
-- SQLite
+- PostgreSQL
 - Eloquent ORM
 - Postman
 - PHPUnit
@@ -28,8 +28,7 @@ API REST desarrollada con Laravel para gestionar publicaciones, imágenes, comen
 
 ## Requisitos previos
 
-- PHP compatible con la versión de Laravel utilizada.
-- Composer.
+- Docker Desktop y Docker Compose.
 - Git.
 - Postman para probar los endpoints.
 
@@ -111,57 +110,17 @@ git clone https://github.com/JaimeLuiss/facebook-api.git
 cd facebook-api
 ```
 
-Instala las dependencias:
-
-```bash
-composer install
-```
-
-Crea el archivo de configuración local en Windows PowerShell:
+Configura el entorno local con PostgreSQL en Docker y arranca la aplicación:
 
 ```powershell
 Copy-Item .env.example .env
+docker compose run --rm --no-deps app php artisan key:generate
+docker compose up --build -d
 ```
 
-Genera la clave de la aplicación:
-
-```bash
-php artisan key:generate
-```
-
-En el archivo `.env`, configura la conexión a SQLite:
-
-```env
-DB_CONNECTION=sqlite
-```
-
-Crea el archivo de la base de datos si todavía no existe:
-
-```powershell
-if (!(Test-Path database\database.sqlite)) {
-    New-Item database\database.sqlite -ItemType File
-}
-```
-
-Ejecuta las migraciones:
-
-```bash
-php artisan migrate
-```
-
-Crea el enlace simbólico para acceder a las imágenes:
-
-```bash
-php artisan storage:link
-```
-
-Inicia el servidor:
-
-```bash
-php artisan serve
-```
-
-La API estará disponible normalmente en `http://127.0.0.1:8000`.
+La API estará disponible en `http://localhost:8080`. Compose crea la base
+`facebook_api` para la aplicación y, en la primera inicialización del volumen
+de PostgreSQL, también crea `testing` para las pruebas.
 
 ## Endpoints
 
@@ -234,10 +193,12 @@ Envía `DELETE /api/v1/posts/{id}` con un token válido. La respuesta esperada e
 Scribe genera el sitio de documentación y una especificación OpenAPI:
 
 ```bash
-php artisan scribe:generate
+docker compose exec app php artisan scribe:generate
 ```
 
-Después de iniciar Laravel, abre `http://127.0.0.1:8000/docs`. La especificación OpenAPI y una colección Postman generada también están disponibles en `/docs.openapi` y `/docs.postman`.
+Después de iniciar los servicios, abre `http://localhost:8080/docs`. La
+especificación OpenAPI y una colección Postman generada también están
+disponibles en `/docs.openapi` y `/docs.postman`.
 
 ## Notificaciones por correo
 
@@ -245,19 +206,28 @@ Al comentar una publicación que tenga usuario propietario, se envía un correo 
 
 ## Pruebas automatizadas
 
-Ejecuta:
+Ejecuta las pruebas dentro del contenedor de la aplicación:
 
-```bash
-php artisan test
+```powershell
+docker compose exec app php artisan test
 ```
 
-Las pruebas automatizadas verifican los casos incluidos en el directorio `tests`.
+PHPUnit usa PostgreSQL en el servicio `db`, con una base de datos `testing`
+separada de `facebook_api`. Si ya existía el volumen `pgdata` antes de agregar
+la base de pruebas, créala una sola vez:
+
+```powershell
+docker compose exec db psql -U postgres -d facebook_api -c "CREATE DATABASE testing;"
+```
+
+Las pruebas automatizadas verifican los casos incluidos en el directorio
+`tests`; no usan ni modifican la base de datos de desarrollo.
 
 ## Colección de Postman
 
 La colección completa está en `Facebook_API_Taller_Backend.postman_collection.json`. En Postman, selecciona **Import** y elige ese archivo. Incluye solicitudes para registrarse/iniciar sesión, crear/listar/buscar publicaciones, paginar, comentar, comprobar correo, probar likes con dos usuarios, verificar rechazo sin token, comprobar el alias antiguo, consultar la documentación, eliminar la publicación y cerrar sesión.
 
-La colección usa `http://127.0.0.1:8000` por defecto. Inicia Laravel con `php artisan serve` antes de enviar las solicitudes. Empieza por **Registrar usuario principal**; el token y el ID de la publicación se guardan automáticamente. Después sigue el orden numerado de las carpetas. Para probar la página 2, primero crea más de diez publicaciones. Para probar imágenes, habilita el campo `images[]` y selecciona un archivo local. La prueba de notificación puede comprobarse en `storage/logs/laravel.log` si se mantiene `MAIL_MAILER=log`. Ejecuta la carpeta de limpieza antes de cerrar sesión.
+La colección usa `http://localhost:8080` por defecto cuando la API se ejecuta con Docker. Inicia los servicios antes de enviar las solicitudes. Empieza por **Registrar usuario principal**; el token y el ID de la publicación se guardan automáticamente. Después sigue el orden numerado de las carpetas. Para probar la página 2, primero crea más de diez publicaciones. Para probar imágenes, habilita el campo `images[]` y selecciona un archivo local. La prueba de notificación puede comprobarse en `storage/logs/laravel.log` si se mantiene `MAIL_MAILER=log`. Ejecuta la carpeta de limpieza antes de cerrar sesión.
 
 Si cambias el host o puerto, modifica las variables `app_url` y `base_url` de la colección. Las credenciales del endpoint **Iniciar sesión** son de ejemplo; reemplázalas por una cuenta existente o usa **Registrar usuario principal**, que genera un correo de prueba único.
 

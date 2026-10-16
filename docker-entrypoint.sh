@@ -10,7 +10,11 @@ case "$PORT" in
 esac
 
 echo "=== Limpiando y optimizando caches de Laravel ==="
-php artisan config:cache
+if [ "${APP_ENV:-production}" = "production" ]; then
+    php artisan config:cache
+else
+    php artisan config:clear
+fi
 php artisan route:cache
 php artisan view:cache
 

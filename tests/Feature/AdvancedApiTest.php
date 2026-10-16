@@ -7,6 +7,7 @@ use App\Models\Post;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
@@ -15,6 +16,11 @@ use Tests\TestCase;
 class AdvancedApiTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_suite_uses_the_isolated_postgresql_database(): void
+    {
+        $this->assertSame('testing', DB::connection()->getDatabaseName());
+    }
 
     public function test_post_list_is_paginated_and_searches_title_or_content(): void
     {

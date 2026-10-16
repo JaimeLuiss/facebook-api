@@ -14,6 +14,7 @@ API REST desarrollada con Laravel para gestionar publicaciones, imágenes, comen
 - Mantener endpoints versionados en `/api/v1` y compatibilidad con las rutas anteriores.
 - Generar documentación web y especificaciones OpenAPI automáticamente con Scribe.
 - Eliminar publicaciones y sus imágenes físicas.
+- Guardar imágenes en almacenamiento local o en un bucket S3.
 - Ejecutar pruebas automatizadas con PHPUnit.
 
 ## Tecnologías
@@ -65,6 +66,41 @@ puerto se toma de `PORT` (por defecto `10000`).
 
 Abre la API en `http://localhost:8080`. Consulta los registros con
 `docker compose logs -f app` y detén los servicios con `docker compose down`.
+
+## Almacenamiento de imágenes en S3
+
+Laravel necesita el adaptador Flysystem para conectarse a S3. Instálalo con
+Composer y conserva `composer.lock` en el repositorio:
+
+```bash
+composer require "league/flysystem-aws-s3-v3:^3.0"
+```
+
+Por defecto, las imágenes se guardan en el disco `public` local. Para usar un
+bucket S3, configura estas variables en el entorno de despliegue (por ejemplo,
+en **Render > Environment**):
+
+```env
+POSTS_IMAGE_DISK=s3
+AWS_ACCESS_KEY_ID=tu_access_key
+AWS_SECRET_ACCESS_KEY=tu_secret_key
+AWS_DEFAULT_REGION=us-east-1
+AWS_BUCKET=nombre-del-bucket
+```
+
+No agregues credenciales reales a `.env.example` ni al repositorio. La identidad
+IAM debe tener permisos para leer, subir y borrar objetos en el bucket. Como la
+API devuelve URLs directas a las imágenes, configura también una política de
+lectura pública para los objetos o un CDN público y define `AWS_URL` con su URL.
+El disco S3 establece visibilidad `public` al subir. En AWS, asegúrate de que
+el bucket permita ACL públicas; si tiene ACL deshabilitadas (`Bucket owner
+enforced`), las subidas pueden fallar con el adaptador S3 estándar de Laravel.
+Para proveedores compatibles con S3, `AWS_ENDPOINT` y
+`AWS_USE_PATH_STYLE_ENDPOINT` son opciones adicionales.
+
+El controlador guarda y elimina imágenes en el disco indicado por
+`POSTS_IMAGE_DISK`, y obtiene `image_url` desde ese mismo disco. Las imágenes
+guardadas antes de cambiar de disco no se copian automáticamente al bucket.
 
 ## Instalación
 

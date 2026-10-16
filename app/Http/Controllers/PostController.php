@@ -45,7 +45,7 @@ class PostController extends Controller
 
             $post->images->transform(function ($image) {
                 $image->image_url = $image->image_path
-                    ? asset('storage/'.$image->image_path)
+                    ? Storage::disk(config('filesystems.image_disk'))->url($image->image_path)
                     : null;
 
                 return $image;
@@ -77,7 +77,7 @@ class PostController extends Controller
 
         $post->images->transform(function ($image) {
             $image->image_url = $image->image_path
-                ? asset('storage/'.$image->image_path)
+                ? Storage::disk(config('filesystems.image_disk'))->url($image->image_path)
                 : null;
 
             return $image;
@@ -124,7 +124,12 @@ class PostController extends Controller
         // Guardar las imágenes y registrar sus rutas.
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $file) {
-                $path = $file->store('posts', 'public');
+                $disk = config('filesystems.image_disk');
+                $path = $file->store('posts', $disk);
+
+                if ($path === false) {
+                    throw new \RuntimeException('No se pudo guardar la imagen subida.');
+                }
 
                 $post->images()->create([
                     'image_path' => $path,
@@ -137,7 +142,7 @@ class PostController extends Controller
 
         $post->images->transform(function ($image) {
             $image->image_url = $image->image_path
-                ? asset('storage/'.$image->image_path)
+                ? Storage::disk(config('filesystems.image_disk'))->url($image->image_path)
                 : null;
 
             return $image;
@@ -194,9 +199,10 @@ class PostController extends Controller
     public function destroy($id)
     {
         $post = Post::with('images')->findOrFail($id);
+        $disk = Storage::disk(config('filesystems.image_disk'));
 
         foreach ($post->images as $image) {
-            Storage::disk('public')->delete($image->image_path);
+            $disk->delete($image->image_path);
         }
 
         $post->delete();

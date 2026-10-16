@@ -6,7 +6,9 @@ use App\Mail\NewCommentMail;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -60,6 +62,33 @@ class AdvancedApiTest extends TestCase
         $this->postJson('/api/v1/posts')->assertUnauthorized();
         $this->postJson("/api/v1/posts/{$post->id}/comments")->assertUnauthorized();
         $this->deleteJson("/api/v1/posts/{$post->id}")->assertUnauthorized();
+    }
+
+    public function test_post_images_use_the_configured_disk_and_return_its_url(): void
+    {
+        config(['filesystems.image_disk' => 's3']);
+        Storage::fake('s3');
+        Sanctum::actingAs(User::factory()->create());
+
+        $response = $this->post('/api/v1/posts', [
+            'title' => 'Publicación con imagen',
+            'content' => 'Contenido de prueba',
+            'images' => [UploadedFile::fake()->createWithContent(
+                'photo.png',
+                base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j3ioAAAAASUVORK5CYII=')
+            )],
+        ]);
+
+        $response->assertCreated();
+        $path = $response->json('images.0.image_path');
+        Storage::disk('s3')->assertExists($path);
+        $this->assertSame(
+            Storage::disk('s3')->url($path),
+            $response->json('images.0.image_url')
+        );
+
+        $this->deleteJson('/api/v1/posts/'.$response->json('id'))->assertNoContent();
+        Storage::disk('s3')->assertMissing($path);
     }
 
     public function test_generated_api_documentation_is_available(): void

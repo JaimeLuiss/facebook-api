@@ -32,6 +32,40 @@ API REST desarrollada con Laravel para gestionar publicaciones, imágenes, comen
 - Git.
 - Postman para probar los endpoints.
 
+## Ejecutar con Docker
+
+Desde la carpeta del proyecto, construye la imagen e inicia los servicios:
+
+```powershell
+docker compose up --build -d
+```
+
+El servicio de Laravel se llama `app` en Compose; `facebook_app` es el nombre
+del contenedor. Para instalar dependencias en el servicio:
+
+```powershell
+docker compose exec app composer install
+```
+
+Si la aplicación todavía no está iniciada, ejecuta Composer en un contenedor
+temporal:
+
+```powershell
+docker compose run --rm app composer install
+```
+
+El montaje del proyecto en `/var/www` oculta los archivos de esa ruta dentro
+de la imagen. Por eso Compose monta el volumen con nombre `vendor` en
+`/var/www/vendor`: Docker lo inicializa con la carpeta `vendor` creada durante
+la construcción de la imagen y la mantiene separada del montaje del proyecto.
+
+Nginx sirve los archivos de `public` y reenvía las solicitudes PHP a PHP-FPM.
+Supervisor mantiene ambos procesos en primer plano en el mismo contenedor; el
+puerto se toma de `PORT` (por defecto `10000`).
+
+Abre la API en `http://localhost:8080`. Consulta los registros con
+`docker compose logs -f app` y detén los servicios con `docker compose down`.
+
 ## Instalación
 
 Clona el repositorio y entra en la carpeta del proyecto:

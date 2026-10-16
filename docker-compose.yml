@@ -23,6 +23,7 @@ services:
       DB_PASSWORD: secret
     volumes:
       - ./:/var/www
+      - vendor:/var/www/vendor
     depends_on:
       db:
         condition: service_healthy
@@ -51,6 +52,7 @@ services:
 
 volumes:
   pgdata:
+  vendor:
 
 networks:
   net:

@@ -12,6 +12,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     libfreetype6-dev \
     libjpeg62-turbo-dev \
+    nginx \
+    supervisor \
+    gettext-base \
     zip \
     unzip \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
@@ -41,10 +44,12 @@ RUN mkdir -p storage/framework/cache \
 
 # Copiar el script de arranque
 COPY docker-entrypoint.sh /var/www/docker-entrypoint.sh
+COPY docker/nginx/default.conf.template /etc/nginx/templates/default.conf.template
+COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 RUN chmod +x /var/www/docker-entrypoint.sh
 
-# Puerto utilizado por Render
+# Puerto predeterminado; Render puede establecer PORT en tiempo de ejecucion
 EXPOSE 10000
 
-# Arrancar la aplicaci?n
+# Arrancar PHP-FPM y Nginx
 CMD ["/var/www/docker-entrypoint.sh"]
